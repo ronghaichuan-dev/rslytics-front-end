@@ -8,13 +8,16 @@
     "postinstall": "max setup",
     "prepare": "husky",
     "setup": "max setup",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
     "@ant-design/pro-components": "^2.4.4",
     "@umijs/max": "^4.6.35",
-    "antd": "^5.4.0"
+    "antd": "^5.4.0",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

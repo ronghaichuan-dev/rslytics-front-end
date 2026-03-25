@@ -1,7 +1,7 @@
 import { history } from '@umijs/max';
 import { Button, Card, Form, Input, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { TOKEN_KEY } from '../../app';
+import { TOKEN_KEY } from '../../constants';
 import { getCaptcha, login } from '../../services/auth';
 
 interface CaptchaState {

@@ -1,7 +1,8 @@
 import { history, RequestConfig } from '@umijs/max';
 import { message } from 'antd';
+import { TOKEN_KEY } from './constants';
 
-export const TOKEN_KEY = 'attrs_token';
+export { TOKEN_KEY };
 
 /** Decode JWT payload without verification (client-side only) */
 export function decodeJWTPayload(token: string): {

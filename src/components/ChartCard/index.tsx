@@ -1,10 +1,9 @@
 import { Card } from 'antd';
-import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 
 interface ChartCardProps {
   title: string;
-  option: EChartsOption;
+  option: object;
   height?: number;
   loading?: boolean;
 }
