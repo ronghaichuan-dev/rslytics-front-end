@@ -65,7 +65,7 @@ export default function RolePage() {
         getPermissionTree(),
         getRolePermissions(record.id),
       ]);
-      setPermTree(treeRes.list ?? []);
+      setPermTree(treeRes.tree ?? []);
       setCheckedKeys((permRes.permissions ?? []).map((p) => p.id));
     } catch {
       setCheckedKeys([]);

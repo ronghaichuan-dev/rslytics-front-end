@@ -14,7 +14,7 @@ export interface Permission {
   children?: Permission[];
 }
 
-export async function getPermissionTree(): Promise<{ list: Permission[] }> {
+export async function getPermissionTree(): Promise<{ tree: Permission[] }> {
   return request('/admin/permission/tree');
 }
 

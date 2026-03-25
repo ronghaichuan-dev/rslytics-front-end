@@ -98,7 +98,7 @@ export default function PermissionPage() {
   const loadTree = async () => {
     try {
       const res = await getPermissionTree();
-      setTree(res.list ?? []);
+      setTree(res.tree ?? []);
     } catch {}
   };
 
