@@ -1,16 +1,26 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { Drawer, Form, Input, message, Popconfirm, Select } from 'antd';
+import {
+  Descriptions,
+  Drawer,
+  Form,
+  Input,
+  message,
+  Popconfirm,
+  Select,
+} from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import AccessButton from '../../../components/AccessButton';
 import { getRoleSelectList, type RoleSelectItem } from '../../../services/role';
 import {
   createUser,
   deleteUser,
+  getUserDetail,
   getUserList,
   updateUser,
   type User,
+  type UserDetail,
 } from '../../../services/user';
 
 export default function UserPage() {
@@ -21,6 +31,8 @@ export default function UserPage() {
   const [editRecord, setEditRecord] = useState<User | null>(null);
   const [roleList, setRoleList] = useState<RoleSelectItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<UserDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     getRoleSelectList()
@@ -38,6 +50,14 @@ export default function UserPage() {
     setEditRecord(record);
     form.setFieldsValue({ username: record.username, role_id: record.role_id });
     setDrawerOpen(true);
+  };
+
+  const openDetail = async (record: User) => {
+    try {
+      const res = await getUserDetail(record.id);
+      setDetailRecord(res.user);
+      setDetailOpen(true);
+    } catch {}
   };
 
   const handleDelete = async (id: number) => {
@@ -80,9 +100,17 @@ export default function UserPage() {
     {
       title: intl.formatMessage({ id: 'common.action' }),
       search: false,
-      width: 140,
+      width: 180,
       render: (_, record) => (
         <>
+          <AccessButton
+            permissionCode="user:list"
+            type="link"
+            size="small"
+            onClick={() => openDetail(record)}
+          >
+            详情
+          </AccessButton>
           <AccessButton
             permissionCode="user:update"
             type="link"
@@ -185,6 +213,30 @@ export default function UserPage() {
             </Select>
           </Form.Item>
         </Form>
+      </Drawer>
+      <Drawer
+        title="用户详情"
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        width={400}
+      >
+        {detailRecord && (
+          <Descriptions column={1} bordered size="small">
+            <Descriptions.Item label="ID">{detailRecord.id}</Descriptions.Item>
+            <Descriptions.Item label="用户名">
+              {detailRecord.username}
+            </Descriptions.Item>
+            <Descriptions.Item label="角色ID">
+              {detailRecord.roleId ?? '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="创建时间">
+              {detailRecord.createdAt ?? '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="更新时间">
+              {detailRecord.updatedAt ?? '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Drawer>
     </>
   );

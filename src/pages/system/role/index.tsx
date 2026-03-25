@@ -16,7 +16,10 @@ import {
   updateRoleStatus,
   type Role,
 } from '../../../services/role';
-import { assignRolePermissions } from '../../../services/rolePermission';
+import {
+  assignRolePermissions,
+  getRolePermissions,
+} from '../../../services/rolePermission';
 
 function buildTreeData(list: Permission[]): any[] {
   return list.map((p) => ({
@@ -58,10 +61,15 @@ export default function RolePage() {
   const openAssign = async (record: Role) => {
     setAssignRoleId(record.id);
     try {
-      const res = await getPermissionTree();
-      setPermTree(res.list ?? []);
-    } catch {}
-    setCheckedKeys([]);
+      const [treeRes, permRes] = await Promise.all([
+        getPermissionTree(),
+        getRolePermissions(record.id),
+      ]);
+      setPermTree(treeRes.list ?? []);
+      setCheckedKeys((permRes.permissions ?? []).map((p) => p.id));
+    } catch {
+      setCheckedKeys([]);
+    }
     setAssignModal(true);
   };
 

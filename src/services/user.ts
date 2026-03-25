@@ -47,3 +47,15 @@ export async function updateUser(body: {
 export async function deleteUser(id: number): Promise<void> {
   return request('/admin/user/delete', { method: 'DELETE', data: { id } });
 }
+
+export interface UserDetail {
+  id: number;
+  username: string;
+  roleId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export async function getUserDetail(id: number): Promise<{ user: UserDetail }> {
+  return request('/admin/user/detail', { params: { id } });
+}

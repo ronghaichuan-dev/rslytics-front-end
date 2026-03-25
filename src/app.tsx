@@ -1,5 +1,6 @@
-import { history, RequestConfig } from '@umijs/max';
+import { getLocale, history, RequestConfig } from '@umijs/max';
 import { message } from 'antd';
+import LangSwitch from './components/LangSwitch';
 import { TOKEN_KEY } from './constants';
 
 export { TOKEN_KEY };
@@ -59,6 +60,10 @@ export const request: RequestConfig = {
   requestInterceptors: [
     (config: any) => {
       const token = localStorage.getItem(TOKEN_KEY);
+      config.headers = {
+        ...config.headers,
+        'Accept-Language': getLocale(),
+      };
       if (token) {
         config.headers = {
           ...config.headers,
@@ -98,5 +103,6 @@ export const layout = () => {
     menu: {
       locale: true,
     },
+    rightContentRender: () => <LangSwitch />,
   };
 };

@@ -9,3 +9,11 @@ export async function assignRolePermissions(body: {
     data: body,
   });
 }
+
+export async function getRolePermissions(
+  roleId: number,
+): Promise<{ role_id: number; permissions: Array<{ id: number }> }> {
+  return request('/admin/role-permission/permissions', {
+    params: { role_id: roleId },
+  });
+}
