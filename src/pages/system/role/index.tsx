@@ -51,9 +51,9 @@ export default function RolePage() {
   const openEdit = (record: Role) => {
     setEditRecord(record);
     form.setFieldsValue({
-      role_name: record.role_name,
-      role_code: record.role_code,
-      role_desc: record.role_desc,
+      role_name: record.roleName,
+      role_code: record.roleCode,
+      role_desc: record.roleDesc,
     });
     setModalOpen(true);
   };
@@ -122,9 +122,9 @@ export default function RolePage() {
 
   const columns: ProColumns<Role>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: '角色名', dataIndex: 'role_name', ellipsis: true },
-    { title: '角色码', dataIndex: 'role_code', ellipsis: true, search: false },
-    { title: '描述', dataIndex: 'role_desc', ellipsis: true, search: false },
+    { title: '角色名', dataIndex: 'roleName', ellipsis: true },
+    { title: '角色码', dataIndex: 'roleCode', ellipsis: true, search: false },
+    { title: '描述', dataIndex: 'roleDesc', ellipsis: true, search: false },
     {
       title: intl.formatMessage({ id: 'common.status' }),
       dataIndex: 'status',
@@ -139,7 +139,7 @@ export default function RolePage() {
     },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
-      dataIndex: 'created_at',
+      dataIndex: 'createdAt',
       search: false,
       width: 180,
     },

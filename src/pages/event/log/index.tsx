@@ -7,19 +7,18 @@ import {
   getAppEventLogDetail,
   getAppEventLogList,
   type AppEventLog,
-  type AppEventLogDetail,
 } from '../../../services/appEventLog';
 
 export default function EventLogPage() {
   const intl = useIntl();
   const actionRef = useRef<ActionType>();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [detail, setDetail] = useState<AppEventLogDetail | null>(null);
+  const [detail, setDetail] = useState<AppEventLog | null>(null);
 
   const openDetail = async (record: AppEventLog) => {
     try {
       const res = await getAppEventLogDetail(record.id);
-      setDetail(res);
+      setDetail(res.event_log);
       setDrawerOpen(true);
     } catch {}
   };
@@ -27,11 +26,11 @@ export default function EventLogPage() {
   const columns: ProColumns<AppEventLog>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
     { title: 'AppID', dataIndex: 'appid', ellipsis: true },
-    { title: '事件码', dataIndex: 'event_code', search: false, ellipsis: true },
-    { title: '用户ID', dataIndex: 'user_id', ellipsis: true },
+    { title: '事件码', dataIndex: 'eventCode', search: false, ellipsis: true },
+    { title: '用户ID', dataIndex: 'userId', ellipsis: true },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
-      dataIndex: 'created_at',
+      dataIndex: 'createdAt',
       search: false,
       width: 180,
     },
@@ -52,7 +51,7 @@ export default function EventLogPage() {
             page: params.current ?? 1,
             size: params.pageSize ?? 20,
             appid: params.appid,
-            user_id: params.user_id,
+            user_id: params.userId,
           });
           return { data: res.list, total: res.total, success: true };
         }}
@@ -70,18 +69,18 @@ export default function EventLogPage() {
             <Descriptions.Item label="ID">{detail.id}</Descriptions.Item>
             <Descriptions.Item label="AppID">{detail.appid}</Descriptions.Item>
             <Descriptions.Item label="事件码">
-              {detail.event_code}
+              {detail.eventCode}
             </Descriptions.Item>
             <Descriptions.Item label="用户ID">
-              {detail.user_id}
+              {detail.userId}
             </Descriptions.Item>
             <Descriptions.Item label="创建时间">
-              {detail.created_at}
+              {detail.createdAt}
             </Descriptions.Item>
-            {detail.event_data && (
-              <Descriptions.Item label="事件数据">
+            {detail.responseText && (
+              <Descriptions.Item label="响应数据">
                 <pre style={{ fontSize: 12, margin: 0 }}>
-                  {JSON.stringify(detail.event_data, null, 2)}
+                  {detail.responseText}
                 </pre>
               </Descriptions.Item>
             )}

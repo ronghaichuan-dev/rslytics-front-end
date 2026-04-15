@@ -1,5 +1,7 @@
 import { defineConfig } from '@umijs/max';
 
+const API_TARGET = process.env.API_TARGET || 'https://dev.godlikeaid.com';
+
 export default defineConfig({
   antd: {},
   access: {},
@@ -15,9 +17,12 @@ export default defineConfig({
     title: false,
     baseNavigator: false,
   },
+  define: {
+    API_TARGET,
+  },
   proxy: {
     '/admin': {
-      target: 'http://127.0.0.1:8802',
+      target: API_TARGET,
       changeOrigin: true,
     },
   },
@@ -54,6 +59,16 @@ export default defineConfig({
           name: '权限管理',
           path: '/system/permission',
           component: './system/permission',
+        },
+        {
+          name: '组织管理',
+          path: '/system/company',
+          component: './system/company',
+        },
+        {
+          name: '账号管理',
+          path: '/system/account',
+          component: './system/account',
         },
       ],
     },

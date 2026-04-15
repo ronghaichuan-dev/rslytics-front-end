@@ -74,7 +74,7 @@ export default function SettingsPage() {
     },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
-      dataIndex: 'created_at',
+      dataIndex: 'createdAt',
       search: false,
       width: 180,
     },

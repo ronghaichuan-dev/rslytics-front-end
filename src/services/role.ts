@@ -2,12 +2,12 @@ import { request } from '@umijs/max';
 
 export interface Role {
   id: number;
-  role_name: string;
-  role_code: string;
-  role_desc?: string;
+  roleName: string;
+  roleCode: string;
+  roleDesc?: string;
   status: 1 | 2;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface RoleListParams {
@@ -22,8 +22,8 @@ export interface RoleListResult {
 
 export interface RoleSelectItem {
   id: number;
-  role_name: string;
-  role_code: string;
+  roleName: string;
+  roleCode: string;
 }
 
 export async function getRoleList(
@@ -40,7 +40,7 @@ export async function createRole(body: {
   role_name: string;
   role_code: string;
   role_desc?: string;
-}): Promise<Role> {
+}): Promise<void> {
   return request('/admin/role/create', { method: 'POST', data: body });
 }
 
@@ -49,7 +49,7 @@ export async function updateRole(body: {
   role_name?: string;
   role_code?: string;
   role_desc?: string;
-}): Promise<Role> {
+}): Promise<void> {
   return request('/admin/role/update', { method: 'PUT', data: body });
 }
 

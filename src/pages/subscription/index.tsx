@@ -1,58 +1,19 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import {
-  DatePicker,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Popconfirm,
-} from 'antd';
-import dayjs from 'dayjs';
+import { Button, Descriptions, Drawer } from 'antd';
 import { useRef, useState } from 'react';
-import AccessButton from '../../components/AccessButton';
 import {
-  createSubscription,
-  deleteSubscription,
   getSubscriptionDetail,
   getSubscriptionList,
-  updateSubscription,
   type Subscription,
 } from '../../services/subscription';
 
 export default function SubscriptionPage() {
   const intl = useIntl();
   const actionRef = useRef<ActionType>();
-  const [form] = Form.useForm();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<Subscription | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<Subscription | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const openCreate = () => {
-    setEditRecord(null);
-    form.resetFields();
-    setModalOpen(true);
-  };
-
-  const openEdit = (record: Subscription) => {
-    setEditRecord(record);
-    form.setFieldsValue({
-      country: record.country,
-      user_id: record.user_id,
-      device_id: record.device_id,
-      subscription_fee: record.subscription_fee,
-      subscribed_at: record.subscribed_at
-        ? dayjs(record.subscribed_at)
-        : undefined,
-    });
-    setModalOpen(true);
-  };
 
   const openDetail = async (record: Subscription) => {
     try {
@@ -60,37 +21,6 @@ export default function SubscriptionPage() {
       setDetail(res);
       setDrawerOpen(true);
     } catch {}
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteSubscription(id);
-      message.success('删除成功');
-      actionRef.current?.reload();
-    } catch {}
-  };
-
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-    const payload = {
-      ...values,
-      subscribed_at: values.subscribed_at?.toISOString(),
-    };
-    setSubmitting(true);
-    try {
-      if (editRecord) {
-        await updateSubscription({ id: editRecord.id, ...payload });
-        message.success('更新成功');
-      } else {
-        await createSubscription(payload);
-        message.success('创建成功');
-      }
-      setModalOpen(false);
-      actionRef.current?.reload();
-    } catch {
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const columns: ProColumns<Subscription>[] = [
@@ -120,39 +50,11 @@ export default function SubscriptionPage() {
     {
       title: intl.formatMessage({ id: 'common.action' }),
       search: false,
-      width: 180,
+      width: 100,
       render: (_, record) => (
-        <>
-          <AccessButton
-            permissionCode="subscription:update"
-            type="link"
-            size="small"
-            onClick={() => openEdit(record)}
-          >
-            {intl.formatMessage({ id: 'common.edit' })}
-          </AccessButton>
-          <AccessButton
-            permissionCode="subscription:list"
-            type="link"
-            size="small"
-            onClick={() => openDetail(record)}
-          >
-            详情
-          </AccessButton>
-          <Popconfirm
-            title={intl.formatMessage({ id: 'common.deleteConfirm' })}
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <AccessButton
-              permissionCode="subscription:delete"
-              type="link"
-              size="small"
-              danger
-            >
-              {intl.formatMessage({ id: 'common.delete' })}
-            </AccessButton>
-          </Popconfirm>
-        </>
+        <Button type="link" size="small" onClick={() => openDetail(record)}>
+          详情
+        </Button>
       ),
     },
   ];
@@ -174,67 +76,10 @@ export default function SubscriptionPage() {
           });
           return { data: res.list, total: res.total, success: true };
         }}
-        toolBarRender={() => [
-          <AccessButton
-            key="create"
-            permissionCode="subscription:create"
-            type="primary"
-            onClick={openCreate}
-          >
-            {intl.formatMessage({ id: 'common.create' })}
-          </AccessButton>,
-        ]}
+        toolBarRender={false}
         search={{ labelWidth: 'auto' }}
         pagination={{ pageSize: 20 }}
       />
-
-      <Modal
-        title={
-          editRecord
-            ? intl.formatMessage({ id: 'common.edit' })
-            : intl.formatMessage({ id: 'common.create' })
-        }
-        open={modalOpen}
-        onOk={handleSubmit}
-        confirmLoading={submitting}
-        onCancel={() => setModalOpen(false)}
-      >
-        <Form form={form} layout="vertical">
-          {!editRecord && (
-            <>
-              <Form.Item
-                name="app_id"
-                label="App ID"
-                rules={[{ required: true }]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="event_id"
-                label="事件ID"
-                rules={[{ required: true }]}
-              >
-                <InputNumber style={{ width: '100%' }} />
-              </Form.Item>
-            </>
-          )}
-          <Form.Item name="country" label="国家">
-            <Input />
-          </Form.Item>
-          <Form.Item name="user_id" label="用户ID">
-            <Input />
-          </Form.Item>
-          <Form.Item name="device_id" label="设备ID">
-            <Input />
-          </Form.Item>
-          <Form.Item name="subscription_fee" label="订阅费">
-            <InputNumber style={{ width: '100%' }} min={0} precision={2} />
-          </Form.Item>
-          <Form.Item name="subscribed_at" label="订阅时间">
-            <DatePicker showTime style={{ width: '100%' }} />
-          </Form.Item>
-        </Form>
-      </Modal>
 
       <Drawer
         title="订阅详情"

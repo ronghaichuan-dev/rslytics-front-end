@@ -1,22 +1,8 @@
 import { getLocale, history, RequestConfig } from '@umijs/max';
 import { message } from 'antd';
-import LangSwitch from './components/LangSwitch';
+import RightContent from './components/RightContent';
 import { TOKEN_KEY } from './constants';
-
-export { TOKEN_KEY };
-
-/** Decode JWT payload without verification (client-side only) */
-export function decodeJWTPayload(token: string): {
-  user_id?: number;
-  username?: string;
-} {
-  try {
-    const payload = token.split('.')[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return {};
-  }
-}
+import { decodeJWTPayload } from './utils/jwt';
 
 export async function getInitialState(): Promise<{
   userId?: number;
@@ -35,19 +21,16 @@ export async function getInitialState(): Promise<{
       history.push('/login');
       return {};
     }
-    // Fetch permission codes for this user
     const res = await fetch(
       `/admin/permission/user-permissions?userId=${user_id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
-    if (res.status === 401) {
+    const json = await res.json();
+    if (json?.code === 401) {
       localStorage.removeItem(TOKEN_KEY);
       history.push('/login');
       return {};
     }
-    const json = await res.json();
     const permissionCodes: string[] = json?.data?.permissionCodes ?? [];
     return { userId: user_id, username, permissionCodes };
   } catch {
@@ -74,25 +57,27 @@ export const request: RequestConfig = {
     },
   ],
   responseInterceptors: [
-    (response: any) => {
-      const res = response.data;
-      if (res?.code !== 0) {
-        const msg = res?.message ?? '服务器异常';
-        message.error(msg);
-        return Promise.reject(new Error(msg));
-      }
-      response.data = res.data;
-      return response;
-    },
-    (error: any) => {
-      if (error.response?.status === 401) {
-        localStorage.removeItem(TOKEN_KEY);
-        history.push('/login');
-        return;
-      }
-      message.error(error.message ?? '网络错误');
-      return Promise.reject(error);
-    },
+    [
+      (response: any) => {
+        const res = response.data;
+        if (res?.code === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          history.push('/login');
+          return Promise.reject(new Error(res?.message ?? '登录已过期'));
+        }
+        if (res?.code !== 0) {
+          const msg = res?.message ?? '服务器异常';
+          message.error(msg);
+          return Promise.reject(new Error(msg));
+        }
+        response.data = res.data;
+        return response;
+      },
+      (error: any) => {
+        message.error(error.message ?? '网络错误');
+        return Promise.reject(error);
+      },
+    ],
   ],
 };
 
@@ -103,6 +88,9 @@ export const layout = () => {
     menu: {
       locale: true,
     },
-    rightContentRender: () => <LangSwitch />,
+    menuFooterRender: (props: any) => {
+      if (props?.collapsed) return undefined;
+      return <RightContent />;
+    },
   };
 };

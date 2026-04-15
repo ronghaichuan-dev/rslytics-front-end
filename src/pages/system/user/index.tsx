@@ -48,7 +48,7 @@ export default function UserPage() {
 
   const openEdit = (record: User) => {
     setEditRecord(record);
-    form.setFieldsValue({ username: record.username, role_id: record.role_id });
+    form.setFieldsValue({ username: record.username, role_id: record.roleId });
     setDrawerOpen(true);
   };
 
@@ -90,10 +90,19 @@ export default function UserPage() {
   const columns: ProColumns<User>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
     { title: '用户名', dataIndex: 'username', ellipsis: true },
-    { title: '角色', dataIndex: 'role_name', search: false, ellipsis: true },
+    {
+      title: '角色名称',
+      dataIndex: 'roleId',
+      search: false,
+      width: 120,
+      render: (_, record) =>
+        roleList.find((item) => item.id === record.roleId)?.roleName ??
+        record.roleId ??
+        '-',
+    },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
-      dataIndex: 'created_at',
+      dataIndex: 'createdAt',
       search: false,
       width: 180,
     },
@@ -207,7 +216,7 @@ export default function UserPage() {
             <Select placeholder="请选择角色" allowClear>
               {roleList.map((r) => (
                 <Select.Option key={r.id} value={r.id}>
-                  {r.role_name}
+                  {r.roleName}
                 </Select.Option>
               ))}
             </Select>

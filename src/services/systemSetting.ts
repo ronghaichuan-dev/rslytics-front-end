@@ -4,8 +4,8 @@ export interface SystemSetting {
   id: number;
   key: string;
   value: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SystemSettingListParams {
@@ -27,7 +27,7 @@ export async function getSystemSettingList(
 export async function createSystemSetting(body: {
   key: string;
   value: string;
-}): Promise<SystemSetting> {
+}): Promise<void> {
   return request('/admin/system-setting/create', {
     method: 'POST',
     data: body,
@@ -38,7 +38,7 @@ export async function updateSystemSetting(body: {
   id: number;
   key?: string;
   value?: string;
-}): Promise<SystemSetting> {
+}): Promise<void> {
   return request('/admin/system-setting/update', { method: 'PUT', data: body });
 }
 

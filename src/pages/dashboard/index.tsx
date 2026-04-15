@@ -306,7 +306,7 @@ export default function DashboardPage() {
             <Statistic
               title="本月收入"
               value={analytics?.month_subscription_amount ?? '-'}
-              prefix="¥"
+              prefix="$"
               precision={2}
             />
           </Card>
@@ -316,7 +316,7 @@ export default function DashboardPage() {
             <Statistic
               title="总订阅收入"
               value={analytics?.total_subscription_amount ?? '-'}
-              prefix="¥"
+              prefix="$"
               precision={2}
             />
           </Card>
@@ -349,9 +349,9 @@ export default function DashboardPage() {
         <Card title="收入概览" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
             {[
-              ['总收入', revenueSummary.total_revenue, '¥'],
-              ['净收入', revenueSummary.net_revenue, '¥'],
-              ['退款金额', revenueSummary.refund_amount, '¥'],
+              ['总收入', revenueSummary.total_revenue, '$'],
+              ['净收入', revenueSummary.net_revenue, '$'],
+              ['退款金额', revenueSummary.refund_amount, '$'],
               ['订阅数', revenueSummary.subscribe_count, ''],
               ['续订数', revenueSummary.renew_count, ''],
               ['退款数', revenueSummary.refund_count, ''],
@@ -365,7 +365,7 @@ export default function DashboardPage() {
                 (revenueSummary.renew_rate * 100).toFixed(1) + '%',
                 '',
               ],
-              ['ARPU', revenueSummary.ARPU, '¥'],
+              ['ARPU', revenueSummary.arpu, '$'],
             ].map(([title, value, prefix]) => (
               <Col key={title as string} span={8} style={{ marginBottom: 12 }}>
                 <Statistic
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                   value={typeof value === 'number' ? value : (value as string)}
                   prefix={prefix as string}
                   precision={
-                    typeof value === 'number' && prefix === '¥' ? 2 : 0
+                    typeof value === 'number' && prefix === '$' ? 2 : 0
                   }
                 />
               </Col>

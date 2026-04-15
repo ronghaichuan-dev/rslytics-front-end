@@ -9,7 +9,7 @@ export default function LangSwitch() {
       type="text"
       size="small"
       onClick={() => setLocale(isZh ? 'en-US' : 'zh-CN', false)}
-      style={{ color: 'rgba(0,0,0,0.65)' }}
+      style={{ color: 'rgba(0,0,0,0.65)', padding: 0 }}
     >
       {isZh ? 'EN' : '中文'}
     </Button>

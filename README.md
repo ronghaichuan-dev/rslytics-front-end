@@ -257,14 +257,14 @@ npm run build
 
 ## 常用脚本
 
-| 命令             | 说明                     |
-| ---------------- | ------------------------ |
-| `npm run dev`    | 启动本地开发环境         |
-| `npm start`      | 等价于 `npm run dev`     |
-| `npm run build`  | 构建生产包               |
-| `npm run test`   | 运行单元测试             |
+| 命令 | 说明 |
+| --- | --- |
+| `npm run dev` | 启动本地开发环境 |
+| `npm start` | 等价于 `npm run dev` |
+| `npm run build` | 构建生产包 |
+| `npm run test` | 运行单元测试 |
 | `npm run format` | 使用 Prettier 格式化项目 |
-| `npm run setup`  | 执行 `max setup`         |
+| `npm run setup` | 执行 `max setup` |
 
 ## 测试说明
 

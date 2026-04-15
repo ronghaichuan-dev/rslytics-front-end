@@ -1,4 +1,4 @@
-import { UploadOutlined } from '@ant-design/icons';
+import { CopyOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
@@ -15,14 +15,19 @@ import {
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import AccessButton from '../../components/AccessButton';
+import { getBackendAssetUrl } from '../../constants/api';
 import {
   createApp,
   deleteApp,
   getAppList,
+  getAppToken,
   updateApp,
   uploadFile,
   type App,
+  type AppSelectItem,
 } from '../../services/app';
+import { getAppSelectList } from '../../services/dashboard';
+import { getCompanySelectList, type Company } from '../../services/company';
 import { getEventDropdown, type EventDropdownItem } from '../../services/event';
 
 export default function AppPage() {
@@ -33,11 +38,19 @@ export default function AppPage() {
   const [editRecord, setEditRecord] = useState<App | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [eventList, setEventList] = useState<EventDropdownItem[]>([]);
+  const [appSelectList, setAppSelectList] = useState<AppSelectItem[]>([]);
+  const [companyList, setCompanyList] = useState<Company[]>([]);
   const [iconUrl, setIconUrl] = useState<string>('');
 
   useEffect(() => {
     getEventDropdown()
       .then((res) => setEventList(res.list ?? []))
+      .catch(() => {});
+    getAppSelectList()
+      .then((res) => setAppSelectList(res.list ?? []))
+      .catch(() => {});
+    getCompanySelectList()
+      .then((res) => setCompanyList(res.list ?? []))
       .catch(() => {});
   }, []);
 
@@ -54,15 +67,15 @@ export default function AppPage() {
     form.setFieldsValue({
       app_name: record.app_name,
       appid: record.appid,
+      company_id: record.company_id,
       subscription_fee: record.subscription_fee,
-      event_ids: record.event_ids ?? [],
     });
     setModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (appid: string) => {
     try {
-      await deleteApp(id);
+      await deleteApp(appid);
       message.success('删除成功');
       actionRef.current?.reload();
     } catch {}
@@ -71,8 +84,9 @@ export default function AppPage() {
   const handleUpload = async (file: File): Promise<boolean> => {
     try {
       const res = await uploadFile(file);
-      setIconUrl(res.url);
-      form.setFieldValue('icon', res.url);
+      const url = getBackendAssetUrl(res.url);
+      setIconUrl(url);
+      form.setFieldValue('icon', url);
       message.success('上传成功');
     } catch {}
     return false;
@@ -83,9 +97,10 @@ export default function AppPage() {
     setSubmitting(true);
     try {
       if (editRecord) {
+        const { appid: _appid, ...rest } = values;
         await updateApp({
-          id: editRecord.id,
-          ...values,
+          appid: editRecord.appid,
+          ...rest,
           icon: iconUrl || undefined,
         });
         message.success('更新成功');
@@ -102,7 +117,6 @@ export default function AppPage() {
   };
 
   const columns: ProColumns<App>[] = [
-    { title: 'ID', dataIndex: 'id', width: 80, search: false },
     {
       title: '图标',
       dataIndex: 'icon',
@@ -111,19 +125,56 @@ export default function AppPage() {
       render: (_, record) =>
         record.icon ? <Image src={record.icon} width={32} height={32} /> : '-',
     },
-    { title: 'AppID', dataIndex: 'appid', ellipsis: true },
-    { title: '应用名', dataIndex: 'app_name', ellipsis: true },
+    {
+      title: 'AppID',
+      dataIndex: 'appid',
+      ellipsis: true,
+      renderFormItem: () => (
+        <Select allowClear showSearch placeholder="请选择AppID" optionFilterProp="label">
+          {appSelectList.map((item) => (
+            <Select.Option key={item.app_id} value={item.app_id} label={`${item.app_id} - ${item.app_name}`}>
+              {item.app_id} - {item.app_name}
+            </Select.Option>
+          ))}
+        </Select>
+      ),
+    },
+    { title: '应用名', dataIndex: 'app_name', ellipsis: true, search: false },
+    { title: '所属公司', dataIndex: 'company_name', ellipsis: true, search: false },
+    {
+      title: 'AppToken',
+      dataIndex: 'app_token',
+      search: false,
+      ellipsis: true,
+      render: (_, record) =>
+        record.app_token ? (
+          <span>
+            <CopyOutlined
+              style={{ cursor: 'pointer', color: '#1890ff' }}
+              onClick={async () => {
+                try {
+                  const res = await getAppToken(record.appid);
+                  const token = res.token ?? res.app_token ?? record.app_token;
+                  if (!token) throw new Error("empty token");
+                  await navigator.clipboard.writeText(token);
+                  message.success('已复制');
+                } catch {
+                  message.error('获取Token失败');
+                }
+              }}
+            /> {record.app_token}
+          </span>
+        ) : '-',
+    },
     {
       title: '订阅费',
       dataIndex: 'subscription_fee',
       search: false,
-      width: 100,
     },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
       dataIndex: 'created_at',
       search: false,
-      width: 180,
     },
     {
       title: intl.formatMessage({ id: 'common.action' }),
@@ -141,7 +192,7 @@ export default function AppPage() {
           </AccessButton>
           <Popconfirm
             title={intl.formatMessage({ id: 'common.deleteConfirm' })}
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(record.appid)}
           >
             <AccessButton
               permissionCode="app:delete"
@@ -161,13 +212,14 @@ export default function AppPage() {
     <>
       <ProTable<App>
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="appid"
         columns={columns}
         request={async (params) => {
           const res = await getAppList({
             page: params.current ?? 1,
             size: params.pageSize ?? 20,
-            keyword: params.appid || params.app_name,
+            appid: params.appid,
+            app_name: params.app_name,
           });
           return { data: res.list, total: res.total, success: true };
         }}
@@ -206,32 +258,47 @@ export default function AppPage() {
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            name="company_id"
+            label="所属公司"
+            rules={[{ required: true }]}
+          >
+            <Select placeholder="请选择公司" showSearch optionFilterProp="children">
+              {companyList.map((company) => (
+                <Select.Option key={company.id} value={company.id}>
+                  {company.company_name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item name="subscription_fee" label="订阅费">
             <InputNumber style={{ width: '100%' }} min={0} precision={2} />
           </Form.Item>
           <Form.Item label="图标">
-            {iconUrl && (
-              <Image
-                src={iconUrl}
-                width={64}
-                height={64}
-                style={{ marginBottom: 8, display: 'block' }}
-              />
-            )}
-            <Upload
-              accept="image/*"
-              showUploadList={false}
-              beforeUpload={handleUpload}
-            >
-              <AccessButton
-                permissionCode={editRecord ? 'app:update' : 'app:create'}
-                icon={<UploadOutlined />}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {iconUrl && (
+                <Image
+                  src={iconUrl}
+                  width={64}
+                  height={64}
+                  style={{ borderRadius: 6, border: '1px solid #d9d9d9' }}
+                />
+              )}
+              <Upload
+                accept="image/*"
+                showUploadList={false}
+                beforeUpload={handleUpload}
               >
-                上传图标
-              </AccessButton>
-            </Upload>
+                <AccessButton
+                  permissionCode={editRecord ? 'app:update' : 'app:create'}
+                  icon={<UploadOutlined />}
+                >
+                  {iconUrl ? '更换图标' : '上传图标'}
+                </AccessButton>
+              </Upload>
+            </div>
           </Form.Item>
-          <Form.Item name="event_ids" label="绑定事件">
+          <Form.Item name="events" label="绑定事件">
             <Select mode="multiple" placeholder="请选择事件">
               {eventList.map((e) => (
                 <Select.Option key={e.id} value={e.id}>

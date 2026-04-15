@@ -14,6 +14,30 @@ export interface Permission {
   children?: Permission[];
 }
 
+export interface PermissionListItem {
+  id: number;
+  permissionName: string;
+  permissionCode: string;
+  permissionDesc?: string;
+  module: string;
+  route?: string;
+  parentId?: number;
+  level: number;
+  status: 1 | 2;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getPermissionList(params: {
+  page: number;
+  size: number;
+  permission_name?: string;
+  permission_code?: string;
+  module?: string;
+}): Promise<{ total: number; list: PermissionListItem[] }> {
+  return request('/admin/permission/list', { params });
+}
+
 export async function getPermissionTree(): Promise<{ tree: Permission[] }> {
   return request('/admin/permission/tree');
 }

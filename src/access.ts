@@ -1,6 +1,10 @@
-export default function access(initialState: { permissionCodes?: string[] }) {
+export default function access(initialState: {
+  username?: string;
+  permissionCodes?: string[];
+}) {
+  const isAdmin = initialState?.username === 'admin';
   const codes = initialState?.permissionCodes ?? [];
   return {
-    can: (code: string) => codes.includes(code),
+    can: (code: string) => isAdmin || codes.includes(code),
   };
 }

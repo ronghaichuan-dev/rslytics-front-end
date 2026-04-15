@@ -23,7 +23,7 @@ export interface RevenueSummary {
   refund_count: number;
   refund_rate: number;
   renew_rate: number;
-  ARPU: number;
+  arpu: number;
 }
 
 export interface RevenueTrendItem {
