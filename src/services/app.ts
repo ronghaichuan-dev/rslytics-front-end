@@ -1,7 +1,7 @@
 import { request } from '@umijs/max';
 
 export interface App {
-  appid: string;
+  app_id: string;
   app_name: string;
   company_id?: number;
   company_name?: string;
@@ -15,7 +15,7 @@ export interface App {
 export interface AppListParams {
   page: number;
   size: number;
-  appid?: string;
+  app_id?: string;
   app_name?: string;
 }
 
@@ -44,7 +44,7 @@ export async function getAppList(
 }
 
 export async function createApp(body: {
-  appid: string;
+  app_id: string;
   app_name: string;
   company_id: number;
   icon?: string;
@@ -55,7 +55,7 @@ export async function createApp(body: {
 }
 
 export async function updateApp(body: {
-  appid: string;
+  app_id: string;
   company_id?: number;
   app_name?: string;
   icon?: string;
@@ -65,18 +65,18 @@ export async function updateApp(body: {
   return request('/admin/app/update', { method: 'PUT', data: body });
 }
 
-export async function deleteApp(appid: string): Promise<void> {
-  return request('/admin/app/delete', { method: 'DELETE', data: { appid } });
+export async function deleteApp(app_id: string): Promise<void> {
+  return request('/admin/app/delete', { method: 'DELETE', data: { app_id } });
 }
 
 export async function getAppSubscriptionTrend(
-  appid: string,
+  app_id: string,
 ): Promise<{ trend: any[] }> {
-  return request('/admin/app/subscription/trend', { params: { appid } });
+  return request('/admin/app/subscription/trend', { params: { app_id } });
 }
 
-export async function getAppToken(appid: string): Promise<{ token?: string; app_token?: string }> {
-  return request('/admin/app/token', { params: { appid } });
+export async function getAppToken(app_id: string): Promise<{ token?: string; app_token?: string }> {
+  return request('/admin/app/token', { params: { app_id } });
 }
 
 export async function uploadFile(file: File): Promise<{ url: string }> {

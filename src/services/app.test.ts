@@ -13,14 +13,14 @@ describe('app service', () => {
   });
 
   it('createApp', async () => {
-    const body = { appid: 'app1', app_name: 'MyApp', company_id: 1 };
+    const body = { app_id: 'app1', app_name: 'MyApp', company_id: 1 };
     mockRequest.mockResolvedValue(undefined);
     await createApp(body);
     expect(mockRequest).toHaveBeenCalledWith('/admin/app/create', { method: 'POST', data: body });
   });
 
   it('updateApp', async () => {
-    const body = { appid: 'app1', company_id: 2, app_name: 'Updated' };
+    const body = { app_id: 'app1', company_id: 2, app_name: 'Updated' };
     mockRequest.mockResolvedValue(undefined);
     await updateApp(body);
     expect(mockRequest).toHaveBeenCalledWith('/admin/app/update', { method: 'PUT', data: body });
@@ -29,19 +29,19 @@ describe('app service', () => {
   it('deleteApp', async () => {
     mockRequest.mockResolvedValue(undefined);
     await deleteApp('app1');
-    expect(mockRequest).toHaveBeenCalledWith('/admin/app/delete', { method: 'DELETE', data: { appid: 'app1' } });
+    expect(mockRequest).toHaveBeenCalledWith('/admin/app/delete', { method: 'DELETE', data: { app_id: 'app1' } });
   });
 
   it('getAppSubscriptionTrend', async () => {
     mockRequest.mockResolvedValue({ trend: [] });
     await getAppSubscriptionTrend('app1');
-    expect(mockRequest).toHaveBeenCalledWith('/admin/app/subscription/trend', { params: { appid: 'app1' } });
+    expect(mockRequest).toHaveBeenCalledWith('/admin/app/subscription/trend', { params: { app_id: 'app1' } });
   });
 
   it('getAppToken', async () => {
     mockRequest.mockResolvedValue({ app_token: 'abc123' });
     const res = await getAppToken('app1');
-    expect(mockRequest).toHaveBeenCalledWith('/admin/app/token', { params: { appid: 'app1' } });
+    expect(mockRequest).toHaveBeenCalledWith('/admin/app/token', { params: { app_id: 'app1' } });
     expect(res.app_token).toBe('abc123');
   });
 

@@ -8,8 +8,8 @@ describe('appEventLog service', () => {
 
   it('getAppEventLogList', async () => {
     mockRequest.mockResolvedValue({ total: 0, list: [] });
-    await getAppEventLogList({ page: 1, size: 20, appid: 'app1' });
-    expect(mockRequest).toHaveBeenCalledWith('/admin/app-event-log/list', { params: { page: 1, size: 20, appid: 'app1' } });
+    await getAppEventLogList({ page: 1, size: 20, app_id: 'app1' });
+    expect(mockRequest).toHaveBeenCalledWith('/admin/app-event-log/list', { params: { page: 1, size: 20, app_id: 'app1' } });
   });
 
   it('getAppEventLogDetail', async () => {

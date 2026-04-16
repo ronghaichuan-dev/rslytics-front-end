@@ -12,7 +12,7 @@ describe('account service', () => {
       list: [
         {
           id: 1,
-          appid: '["app1"]',
+          app_id: '["app1"]',
           accountType: 1,
           companyId: 2,
           accountInfo: '{"key":"value"}',
@@ -30,7 +30,7 @@ describe('account service', () => {
       list: [
         {
           id: 1,
-          appid: ['app1'],
+          app_id: ['app1'],
           account_type: 1,
           company_id: 2,
           account_info: { key: 'value' },
@@ -44,28 +44,28 @@ describe('account service', () => {
   });
 
   it('createAccount', async () => {
-    const body = { appid: ['app1'], account_type: 1, company_id: 1, account_info: { key: 'value' } };
+    const body = { app_id: ['app1'], account_type: 1, company_id: 1, account_info: { key: 'value' } };
     mockRequest.mockResolvedValue(undefined);
     await createAccount(body);
     expect(mockRequest).toHaveBeenCalledWith('/admin/account/create', {
       method: 'POST',
       data: {
         ...body,
-        appid: '["app1"]',
+        app_id: '["app1"]',
         account_info: '{"key":"value"}',
       },
     });
   });
 
   it('updateAccount', async () => {
-    const body = { id: 1, appid: ['app2'], account_type: 2, company_id: 1, account_info: { token: 'abc' } };
+    const body = { id: 1, app_id: ['app2'], account_type: 2, company_id: 1, account_info: { token: 'abc' } };
     mockRequest.mockResolvedValue(undefined);
     await updateAccount(body);
     expect(mockRequest).toHaveBeenCalledWith('/admin/account/update', {
       method: 'PUT',
       data: {
         ...body,
-        appid: '["app2"]',
+        app_id: '["app2"]',
         account_info: '{"token":"abc"}',
       },
     });

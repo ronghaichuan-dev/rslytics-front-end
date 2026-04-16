@@ -21,9 +21,20 @@ export default defineConfig({
     API_TARGET,
   },
   proxy: {
-    '/admin': {
-      target: API_TARGET,
+    '/api-local': {
+      target: 'http://localhost:8802',
       changeOrigin: true,
+      pathRewrite: { '^/api-local': '' },
+    },
+    '/api-test': {
+      target: 'https://dev.godlikeaid.com',
+      changeOrigin: true,
+      pathRewrite: { '^/api-test': '' },
+    },
+    '/api-prod': {
+      target: 'https://api.godlikeaid.com',
+      changeOrigin: true,
+      pathRewrite: { '^/api-prod': '' },
     },
   },
   routes: [
@@ -40,6 +51,47 @@ export default defineConfig({
       name: '数据大盘',
       path: '/dashboard',
       component: './dashboard',
+    },
+    {
+      name: '数据分析',
+      path: '/analytics',
+      routes: [
+        {
+          name: '数据概览',
+          path: '/analytics/overview',
+          component: './analytics/overview',
+        },
+        {
+          name: '渠道分析',
+          path: '/analytics/channel',
+          component: './analytics/channel',
+        },
+        {
+          name: '活动分析',
+          path: '/analytics/campaign',
+          component: './analytics/campaign',
+        },
+        {
+          name: '地理分析',
+          path: '/analytics/geo',
+          component: './analytics/geo',
+        },
+        {
+          name: '订阅漏斗',
+          path: '/analytics/funnel',
+          component: './analytics/funnel',
+        },
+        {
+          name: 'Cohort & LTV',
+          path: '/analytics/cohort',
+          component: './analytics/cohort',
+        },
+        {
+          name: '自定义报表',
+          path: '/analytics/custom',
+          component: './analytics/custom',
+        },
+      ],
     },
     {
       name: '系统管理',

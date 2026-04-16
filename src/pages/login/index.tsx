@@ -1,7 +1,8 @@
 import { history, useModel } from '@umijs/max';
 import { Button, Card, Form, Input, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { TOKEN_KEY } from '../../constants';
+import { TOKEN_KEY, getApiPrefix } from '../../constants';
+import EnvSwitch from '../../components/EnvSwitch';
 import { getCaptcha, login } from '../../services/auth';
 import { decodeJWTPayload } from '../../utils/jwt';
 
@@ -51,7 +52,7 @@ export default function LoginPage() {
       if (user_id) {
         try {
           const permRes = await fetch(
-            `/admin/permission/user-permissions?userId=${user_id}`,
+            `${getApiPrefix()}/admin/permission/user-permissions?userId=${user_id}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           const json = await permRes.json();
@@ -79,7 +80,11 @@ export default function LoginPage() {
         background: '#f0f2f5',
       }}
     >
-      <Card title="归因数据管理系统" style={{ width: 380 }}>
+      <Card
+        title="归因数据管理系统"
+        extra={<EnvSwitch />}
+        style={{ width: 380 }}
+      >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
             name="username"

@@ -1,7 +1,17 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { Form, Input, message, Modal, Popconfirm, Select } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Select,
+  Space,
+} from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import AccessButton from '../../../components/AccessButton';
 import {
@@ -25,6 +35,58 @@ const ACCOUNT_TYPE_MAP: Record<number, string> = {
   5: 'Facebook',
 };
 
+export interface AccountInfoEntry {
+  key: string;
+  value: string;
+}
+
+export function objectToEntries(
+  accountInfo?: Record<string, unknown>,
+): AccountInfoEntry[] {
+  if (!accountInfo || typeof accountInfo !== 'object') {
+    return [{ key: '', value: '' }];
+  }
+
+  const entries = Object.entries(accountInfo).map(([key, value]) => ({
+    key,
+    value:
+      typeof value === 'string'
+        ? value
+        : value == null
+          ? ''
+          : JSON.stringify(value),
+  }));
+
+  return entries.length > 0 ? entries : [{ key: '', value: '' }];
+}
+
+export function entriesToObject(
+  entries?: AccountInfoEntry[],
+): Record<string, string> | undefined {
+  if (!entries?.length) {
+    return undefined;
+  }
+
+  const normalizedEntries = entries.filter(
+    (entry) => entry && (entry.key?.trim() || entry.value?.trim()),
+  );
+
+  if (normalizedEntries.length === 0) {
+    return undefined;
+  }
+
+  const result: Record<string, string> = {};
+  for (const entry of normalizedEntries) {
+    const key = entry.key.trim();
+    if (!key) {
+      continue;
+    }
+    result[key] = entry.value ?? '';
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
 export default function AccountPage() {
   const intl = useIntl();
   const actionRef = useRef<ActionType>();
@@ -34,6 +96,9 @@ export default function AccountPage() {
   const [submitting, setSubmitting] = useState(false);
   const [companyList, setCompanyList] = useState<Company[]>([]);
   const [appList, setAppList] = useState<{ app_id: string; app_name: string }[]>([]);
+  const accountInfoEntries = Form.useWatch('account_info_entries', form) as
+    | AccountInfoEntry[]
+    | undefined;
 
   useEffect(() => {
     getCompanySelectList()
@@ -47,6 +112,7 @@ export default function AccountPage() {
   const openCreate = () => {
     setEditRecord(null);
     form.resetFields();
+    form.setFieldsValue({ account_info_entries: [{ key: '', value: '' }] });
     setModalOpen(true);
   };
 
@@ -55,10 +121,8 @@ export default function AccountPage() {
     form.setFieldsValue({
       account_type: record.account_type,
       company_id: record.company_id,
-      appid: record.appid,
-      account_info: record.account_info
-        ? JSON.stringify(record.account_info, null, 2)
-        : '',
+      appid: record.app_id,
+      account_info_entries: objectToEntries(record.account_info),
     });
     setModalOpen(true);
   };
@@ -73,21 +137,37 @@ export default function AccountPage() {
 
   const handleSubmit = async () => {
     const values = await form.validateFields();
-    let accountInfo: Record<string, unknown> | undefined;
-    if (values.account_info) {
-      try {
-        accountInfo = JSON.parse(values.account_info);
-      } catch {
-        message.error('账号信息必须为合法 JSON');
-        return;
-      }
+    const entries = (values.account_info_entries ?? []) as AccountInfoEntry[];
+    const duplicateKeys = entries
+      .map((entry) => entry.key?.trim())
+      .filter(Boolean)
+      .filter((key, index, list) => list.indexOf(key) !== index);
+
+    if (duplicateKeys.length > 0) {
+      message.error(`账号信息存在重复 Key：${duplicateKeys[0]}`);
+      return;
     }
+
+    const invalidEntry = entries.find(
+      (entry) => !entry.key?.trim() && entry.value?.trim(),
+    );
+    if (invalidEntry) {
+      message.error('请输入账号信息 Key');
+      return;
+    }
+
+    const accountInfo = entriesToObject(entries);
+    if (entries?.some((entry) => entry.key?.trim()) && !accountInfo) {
+      message.error('账号信息生成失败');
+        return;
+    }
+
     setSubmitting(true);
     try {
       const payload = {
         account_type: values.account_type,
         company_id: values.company_id,
-        appid: values.appid,
+        appid: values.app_id,
         account_info: accountInfo,
       };
       if (editRecord) {
@@ -107,6 +187,11 @@ export default function AccountPage() {
 
   const companyMap = new Map(companyList.map((c) => [c.id, c.company_name]));
   const appMap = new Map(appList.map((app) => [app.app_id, app.app_name]));
+  const accountInfoPreview = JSON.stringify(
+    entriesToObject(accountInfoEntries) ?? {},
+    null,
+    2,
+  );
 
   const columns: ProColumns<Account>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
@@ -128,13 +213,13 @@ export default function AccountPage() {
     },
     {
       title: '关联应用',
-      dataIndex: 'appid',
+      dataIndex: 'app_id',
       search: false,
       width: 320,
       ellipsis: true,
       render: (_, record) =>
-        Array.isArray(record.appid)
-          ? record.appid
+        Array.isArray(record.app_id)
+          ? record.app_id
               .map((appId) => {
                 const appName = appMap.get(appId);
                 return appName ? `${appName} (${appId})` : appId;
@@ -247,7 +332,7 @@ export default function AccountPage() {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="appid" label="关联应用" rules={[{ required: true }]}>
+          <Form.Item name="app_id" label="关联应用" rules={[{ required: true }]}>
             <Select
               mode="multiple"
               placeholder="请选择应用"
@@ -261,8 +346,52 @@ export default function AccountPage() {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="account_info" label="账号信息">
-            <Input.TextArea rows={4} placeholder='JSON 格式，如 {"key": "value"}' />
+          <Form.Item label="账号信息">
+            <Form.List name="account_info_entries">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map((field) => (
+                    <Space
+                      key={field.key}
+                      align="start"
+                      style={{ display: 'flex', marginBottom: 8 }}
+                    >
+                      <Form.Item
+                        key={`account-info-key-${field.key}`}
+                        name={[field.name, 'key']}
+                        fieldKey={[field.fieldKey!, 'key']}
+                        rules={[{ whitespace: true, message: '请输入 Key' }]}
+                      >
+                        <Input placeholder="请输入 Key" style={{ width: 160 }} />
+                      </Form.Item>
+                      <Form.Item
+                        key={`account-info-value-${field.key}`}
+                        name={[field.name, 'value']}
+                        fieldKey={[field.fieldKey!, 'value']}
+                      >
+                        <Input placeholder="请输入 Value" style={{ width: 220 }} />
+                      </Form.Item>
+                      <Button
+                        aria-label={`删除账号信息-${field.name}`}
+                        icon={<MinusCircleOutlined />}
+                        onClick={() => remove(field.name)}
+                      />
+                    </Space>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => add({ key: '', value: '' })}
+                    block
+                    icon={<PlusOutlined />}
+                  >
+                    新增键值对
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+          <Form.Item label="JSON 预览">
+            <Input.TextArea value={accountInfoPreview} rows={6} readOnly />
           </Form.Item>
         </Form>
       </Modal>

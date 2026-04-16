@@ -2,24 +2,32 @@ import { request } from '@umijs/max';
 
 export interface Subscription {
   id: number;
-  app_id: string;
-  event_id: number;
-  event_type?: string;
-  country?: string;
-  user_id?: string;
-  device_id?: string;
-  subscription_fee?: number;
-  subscribed_at?: string;
-  created_at: string;
+  environment: string;
+  orignialTransactionId: string;
+  rsid: string;
+  appId: string;
+  productId: string;
+  status: number;
+  autoRenewStatus: number;
+  isTrial: number;
+  isPaid: number;
+  lastEventAt: number;
+  expiresReason: number;
+  expiresAt: number;
+  offerType: string;
+  offerId: string;
+  revocationDate: number;
+  revocationReason: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface SubscriptionListParams {
   page: number;
   size: number;
   app_id?: string;
-  event_id?: number;
-  country?: string;
-  user_id?: string;
+  status?: number;
+  auto_renew_status?: number;
 }
 
 export interface SubscriptionListResult {
@@ -33,36 +41,8 @@ export async function getSubscriptionList(
   return request('/admin/subscription/list', { params });
 }
 
-export async function getSubscriptionDetail(id: number): Promise<Subscription> {
+export async function getSubscriptionDetail(
+  id: number,
+): Promise<Subscription> {
   return request('/admin/subscription/detail', { params: { id } });
-}
-
-export async function createSubscription(body: {
-  app_id: string;
-  event_id: number;
-  country?: string;
-  user_id?: string;
-  device_id?: string;
-  subscription_fee?: number;
-  subscribed_at?: string;
-}): Promise<Subscription> {
-  return request('/admin/subscription/create', { method: 'POST', data: body });
-}
-
-export async function updateSubscription(body: {
-  id: number;
-  country?: string;
-  user_id?: string;
-  device_id?: string;
-  subscription_fee?: number;
-  subscribed_at?: string;
-}): Promise<Subscription> {
-  return request('/admin/subscription/update', { method: 'PUT', data: body });
-}
-
-export async function deleteSubscription(id: number): Promise<void> {
-  return request('/admin/subscription/delete', {
-    method: 'DELETE',
-    data: { id },
-  });
 }

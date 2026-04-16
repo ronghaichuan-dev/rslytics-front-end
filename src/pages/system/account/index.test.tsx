@@ -23,7 +23,9 @@ vi.mock('../../../services/account', () => ({
 }));
 
 vi.mock('../../../services/company', () => ({
-  getCompanySelectList: vi.fn().mockResolvedValue({ list: [] }),
+  getCompanySelectList: vi.fn().mockResolvedValue({
+    list: [{ id: 1, company_name: 'Test Company' }],
+  }),
 }));
 
 vi.mock('../../../services/dashboard', () => ({
@@ -33,6 +35,7 @@ vi.mock('../../../services/dashboard', () => ({
 }));
 
 import AccountPage from './index';
+import { entriesToObject, objectToEntries } from './index';
 
 describe('AccountPage', () => {
   beforeEach(() => {
@@ -49,10 +52,30 @@ describe('AccountPage', () => {
 
     await waitFor(() => expect(proTableSpy).toHaveBeenCalled());
     const columns = proTableSpy.mock.calls.at(-1)?.[0].columns ?? [];
-    const appColumn = columns.find((column: any) => column.dataIndex === 'appid');
+    const appColumn = columns.find((column: any) => column.dataIndex === 'app_id');
 
     expect(
-      appColumn.render(null, { appid: ['app1', 'unknown-app'] }),
+      appColumn.render(null, { app_id: ['app1', 'unknown-app'] }),
     ).toBe('Test App (app1), unknown-app');
+  });
+
+  it('converts account info object to editable entries', () => {
+    expect(objectToEntries({ account: 'demo', extra: 123 })).toEqual([
+      { key: 'account', value: 'demo' },
+      { key: 'extra', value: '123' },
+    ]);
+  });
+
+  it('converts key-value entries to json object for saving', () => {
+    expect(
+      entriesToObject([
+        { key: 'account', value: 'demo' },
+        { key: 'token', value: 'abc' },
+        { key: '', value: '' },
+      ]),
+    ).toEqual({
+      account: 'demo',
+      token: 'abc',
+    });
   });
 });

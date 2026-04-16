@@ -2,7 +2,7 @@ import { request } from '@umijs/max';
 
 export interface Account {
   id: number;
-  appid: string[];
+  app_id: string[];
   account_type: number;
   company_id: number;
   account_info: Record<string, unknown>;
@@ -26,7 +26,7 @@ export interface AccountListResult {
 
 interface RawAccount {
   id: number;
-  appid: string | string[];
+  app_id: string | string[];
   account_type?: number;
   accountType?: number;
   company_id?: number;
@@ -58,7 +58,7 @@ function parseJsonValue<T>(value: string | T | undefined, fallback: T): T {
 function normalizeAccount(raw: RawAccount): Account {
   return {
     id: raw.id,
-    appid: parseJsonValue<string[]>(raw.appid, []),
+    app_id: parseJsonValue<string[]>(raw.app_id, []),
     account_type: raw.account_type ?? raw.accountType ?? 0,
     company_id: raw.company_id ?? raw.companyId ?? 0,
     account_info: parseJsonValue<Record<string, unknown>>(
@@ -86,7 +86,7 @@ export async function getAccountList(
 }
 
 export async function createAccount(body: {
-  appid: string[];
+  app_id: string[];
   account_type: number;
   company_id: number;
   account_info?: Record<string, unknown>;
@@ -95,7 +95,7 @@ export async function createAccount(body: {
     method: 'POST',
     data: {
       ...body,
-      appid: JSON.stringify(body.appid),
+      app_id: JSON.stringify(body.app_id),
       account_info: body.account_info
         ? JSON.stringify(body.account_info)
         : '',
@@ -114,7 +114,7 @@ export async function updateAccount(body: {
     method: 'PUT',
     data: {
       ...body,
-      appid: body.appid ? JSON.stringify(body.appid) : '',
+      app_id: body.app_id ? JSON.stringify(body.app_id) : '',
       account_info: body.account_info
         ? JSON.stringify(body.account_info)
         : '',

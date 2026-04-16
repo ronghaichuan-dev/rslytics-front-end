@@ -19,13 +19,6 @@ export default function RightContent() {
 
   const menuItems = [
     {
-      key: 'username',
-      label: initialState?.username ?? '用户',
-      disabled: true,
-      style: { color: '#000', cursor: 'default' },
-    },
-    { type: 'divider' as const },
-    {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
@@ -34,18 +27,14 @@ export default function RightContent() {
   ];
 
   return (
-    <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-      <Space direction="vertical" size={8} style={{ width: '100%' }}>
-        <Dropdown menu={{ items: menuItems }} placement="topRight">
-          <Space style={{ cursor: 'pointer', color: 'rgba(0,0,0,0.65)' }}>
-            <UserOutlined />
-            <span style={{ fontSize: 14 }}>
-              {initialState?.username ?? '用户'}
-            </span>
-          </Space>
-        </Dropdown>
-        <LangSwitch />
-      </Space>
-    </div>
+    <Space size={16} align="center">
+      <LangSwitch />
+      <Dropdown menu={{ items: menuItems }} placement="bottomRight">
+        <Space style={{ cursor: 'pointer' }}>
+          <UserOutlined />
+          <span>{initialState?.username ?? '用户'}</span>
+        </Space>
+      </Dropdown>
+    </Space>
   );
 }

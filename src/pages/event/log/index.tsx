@@ -25,7 +25,7 @@ export default function EventLogPage() {
 
   const columns: ProColumns<AppEventLog>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: 'AppID', dataIndex: 'appid', ellipsis: true },
+    { title: 'AppID', dataIndex: 'app_id', ellipsis: true },
     { title: '事件码', dataIndex: 'eventCode', search: false, ellipsis: true },
     { title: '用户ID', dataIndex: 'userId', ellipsis: true },
     {
@@ -50,7 +50,7 @@ export default function EventLogPage() {
           const res = await getAppEventLogList({
             page: params.current ?? 1,
             size: params.pageSize ?? 20,
-            appid: params.appid,
+            app_id: params.app_id,
             user_id: params.userId,
           });
           return { data: res.list, total: res.total, success: true };
@@ -67,7 +67,7 @@ export default function EventLogPage() {
         {detail && (
           <Descriptions column={1} bordered size="small">
             <Descriptions.Item label="ID">{detail.id}</Descriptions.Item>
-            <Descriptions.Item label="AppID">{detail.appid}</Descriptions.Item>
+            <Descriptions.Item label="AppID">{detail.app_id}</Descriptions.Item>
             <Descriptions.Item label="事件码">
               {detail.eventCode}
             </Descriptions.Item>

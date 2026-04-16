@@ -1,7 +1,7 @@
 import { getLocale, history, RequestConfig } from '@umijs/max';
 import { message } from 'antd';
 import RightContent from './components/RightContent';
-import { TOKEN_KEY } from './constants';
+import { TOKEN_KEY, getApiPrefix } from './constants';
 import { decodeJWTPayload } from './utils/jwt';
 
 export async function getInitialState(): Promise<{
@@ -21,8 +21,9 @@ export async function getInitialState(): Promise<{
       history.push('/login');
       return {};
     }
+    const prefix = getApiPrefix();
     const res = await fetch(
-      `/admin/permission/user-permissions?userId=${user_id}`,
+      `${prefix}/admin/permission/user-permissions?userId=${user_id}`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
     const json = await res.json();
@@ -43,6 +44,10 @@ export const request: RequestConfig = {
   requestInterceptors: [
     (config: any) => {
       const token = localStorage.getItem(TOKEN_KEY);
+      const prefix = getApiPrefix();
+      if (config.url && !config.url.startsWith('http')) {
+        config.url = prefix + config.url;
+      }
       config.headers = {
         ...config.headers,
         'Accept-Language': getLocale(),
@@ -85,12 +90,10 @@ export const layout = () => {
   return {
     logo: false,
     title: '归因数据管理系统',
+    layout: 'mix',
     menu: {
       locale: true,
     },
-    menuFooterRender: (props: any) => {
-      if (props?.collapsed) return undefined;
-      return <RightContent />;
-    },
+    actionsRender: () => [<RightContent key="right" />],
   };
 };

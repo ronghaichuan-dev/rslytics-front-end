@@ -2,7 +2,7 @@ import { request } from '@umijs/max';
 
 export interface AppEventLog {
   id: number;
-  appid: string;
+  app_id: string;
   eventCode: string;
   userId: string;
   responseText?: string;
@@ -12,7 +12,7 @@ export interface AppEventLog {
 export interface AppEventLogListParams {
   page: number;
   size: number;
-  appid?: string;
+  app_id?: string;
   user_id?: string;
 }
 
