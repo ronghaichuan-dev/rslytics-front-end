@@ -1,6 +1,5 @@
 import { useIntl } from '@umijs/max';
 import {
-  Button,
   Form,
   Input,
   message,
@@ -19,21 +18,45 @@ import {
   deletePermission,
   disablePermission,
   enablePermission,
+  getPermissionSelect,
   getPermissionTree,
   type Permission,
+  type PermissionSelectItem,
   updatePermission,
 } from '../../../services/permission';
 
-function flattenTree(list: Permission[]): Permission[] {
-  const result: Permission[] = [];
-  const walk = (items: Permission[]) => {
-    for (const item of items) {
-      result.push(item);
-      if (item.children?.length) walk(item.children);
+// function flattenTree(list: Permission[]): Permission[] {
+//   const result: Permission[] = [];
+//   const walk = (items: Permission[]) => {
+//     for (const item of items) {
+//       result.push(item);
+//       if (item.children?.length) walk(item.children);
+//     }
+//   };
+//   walk(list);
+//   return result;
+// }
+
+function renderSelectOptions(
+  items: PermissionSelectItem[],
+  depth = 0,
+): React.ReactElement[] {
+  const options: React.ReactElement[] = [];
+  const prefix = '─'.repeat(depth);
+  for (const item of items) {
+    options.push(
+      <Select.Option key={item.id} value={item.id}>
+        <span style={{ whiteSpace: 'pre-wrap' }}>
+          {prefix}
+          {item.permissionName}
+        </span>
+      </Select.Option>,
+    );
+    if (item.children?.length) {
+      options.push(...renderSelectOptions(item.children, depth + 1));
     }
-  };
-  walk(list);
-  return result;
+  }
+  return options;
 }
 
 export default function PermissionPage() {
@@ -44,6 +67,9 @@ export default function PermissionPage() {
   const [editRecord, setEditRecord] = useState<Permission | null>(null);
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [permissionSelect, setPermissionSelect] = useState<
+    PermissionSelectItem[]
+  >([]);
 
   const loadTree = async () => {
     setLoading(true);
@@ -56,8 +82,16 @@ export default function PermissionPage() {
     }
   };
 
+  const loadPermissionSelect = async () => {
+    try {
+      const res = await getPermissionSelect();
+      setPermissionSelect(res.list ?? []);
+    } catch {}
+  };
+
   useEffect(() => {
     loadTree();
+    loadPermissionSelect();
   }, []);
 
   const openCreate = (parentId?: number) => {
@@ -120,7 +154,7 @@ export default function PermissionPage() {
     }
   };
 
-  const flatList = flattenTree(tree);
+  // const flatList = flattenTree(tree);
 
   const columns: ColumnsType<Permission> = [
     {
@@ -272,12 +306,10 @@ export default function PermissionPage() {
           </Form.Item>
           <Form.Item name="parent_id" label="父级权限">
             <Select allowClear placeholder="顶级权限（可选）">
-              {flatList.map((p) => (
-                <Select.Option key={p.id} value={p.id}>
-                  {'  '.repeat((p.level ?? 1) - 1)}
-                  {p.permission_name} ({p.permission_code})
-                </Select.Option>
-              ))}
+              <Select.Option key={0} value={0}>
+                顶级权限（无父级）
+              </Select.Option>
+              {renderSelectOptions(permissionSelect)}
             </Select>
           </Form.Item>
         </Form>

@@ -6,7 +6,6 @@ import {
   Form,
   Image,
   Input,
-  InputNumber,
   message,
   Modal,
   Popconfirm,
@@ -24,11 +23,8 @@ import {
   updateApp,
   uploadFile,
   type App,
-  type AppSelectItem,
 } from '../../services/app';
-import { getAppSelectList } from '../../services/dashboard';
 import { getCompanySelectList, type Company } from '../../services/company';
-import { getEventDropdown, type EventDropdownItem } from '../../services/event';
 
 export default function AppPage() {
   const intl = useIntl();
@@ -37,18 +33,10 @@ export default function AppPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<App | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [eventList, setEventList] = useState<EventDropdownItem[]>([]);
-  const [appSelectList, setAppSelectList] = useState<AppSelectItem[]>([]);
   const [companyList, setCompanyList] = useState<Company[]>([]);
   const [iconUrl, setIconUrl] = useState<string>('');
 
   useEffect(() => {
-    getEventDropdown()
-      .then((res) => setEventList(res.list ?? []))
-      .catch(() => {});
-    getAppSelectList()
-      .then((res) => setAppSelectList(res.list ?? []))
-      .catch(() => {});
     getCompanySelectList()
       .then((res) => setCompanyList(res.list ?? []))
       .catch(() => {});
@@ -99,10 +87,9 @@ export default function AppPage() {
     setSubmitting(true);
     try {
       if (editRecord) {
-        const { app_id: _app_id, ...rest } = values;
         await updateApp({
           app_id: editRecord.app_id,
-          ...rest,
+          ...values,
           icon: iconUrl || undefined,
         });
         message.success('更新成功');
@@ -127,11 +114,16 @@ export default function AppPage() {
       render: (_, record) =>
         record.icon ? <Image src={record.icon} width={32} height={32} /> : '-',
     },
-    {title: '应用类型', dataIndex: 'app_type', ellipsis: true, search: false },
-    {title: '应用ID', dataIndex: 'app_id', ellipsis: true},
-    {title: '包名', dataIndex: 'bundle_id', ellipsis: true},
+    { title: '应用类型', dataIndex: 'app_type', ellipsis: true, search: false },
+    { title: '应用ID', dataIndex: 'app_id', ellipsis: true },
+    { title: '包名', dataIndex: 'bundle_id', ellipsis: true },
     { title: '应用名', dataIndex: 'app_name', ellipsis: true, search: false },
-    { title: '所属公司', dataIndex: 'company_name', ellipsis: true, search: false },
+    {
+      title: '所属公司',
+      dataIndex: 'company_name',
+      ellipsis: true,
+      search: false,
+    },
     {
       title: 'AppToken',
       dataIndex: 'app_token',
@@ -146,16 +138,19 @@ export default function AppPage() {
                 try {
                   const res = await getAppToken(record.app_id);
                   const token = res.token ?? res.app_token ?? record.app_token;
-                  if (!token) throw new Error("empty token");
+                  if (!token) throw new Error('empty token');
                   await navigator.clipboard.writeText(token);
                   message.success('已复制');
                 } catch {
                   message.error('获取Token失败');
                 }
               }}
-            /> {record.app_token}
+            />{' '}
+            {record.app_token}
           </span>
-        ) : '-',
+        ) : (
+          '-'
+        ),
     },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
@@ -234,20 +229,32 @@ export default function AppPage() {
         onCancel={() => setModalOpen(false)}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="app_type" label="应用类型" rules={[{ required: true }]}>
-            <Select placeholder="请选择应用类型" showSearch optionFilterProp="children">
-                <Select.Option key="android" value="android">
-                  Android
-                </Select.Option>
-                <Select.Option key="ios" value="ios">
-                  IOS
-                </Select.Option>
+          <Form.Item
+            name="app_type"
+            label="应用类型"
+            rules={[{ required: true }]}
+          >
+            <Select
+              placeholder="请选择应用类型"
+              showSearch
+              optionFilterProp="children"
+            >
+              <Select.Option key="android" value="android">
+                Android
+              </Select.Option>
+              <Select.Option key="ios" value="ios">
+                IOS
+              </Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="app_id" label="AppID" rules={[{ required: true }]}>
             <Input disabled={!!editRecord} />
           </Form.Item>
-          <Form.Item name="bundle_id" label="BundleId" rules={[{ required: true }]}>
+          <Form.Item
+            name="bundle_id"
+            label="BundleId"
+            rules={[{ required: true }]}
+          >
             <Input disabled={!!editRecord} />
           </Form.Item>
           <Form.Item
@@ -262,7 +269,11 @@ export default function AppPage() {
             label="所属公司"
             rules={[{ required: true }]}
           >
-            <Select placeholder="请选择公司" showSearch optionFilterProp="children">
+            <Select
+              placeholder="请选择公司"
+              showSearch
+              optionFilterProp="children"
+            >
               {companyList.map((company) => (
                 <Select.Option key={company.id} value={company.id}>
                   {company.company_name}

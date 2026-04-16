@@ -1,7 +1,7 @@
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   Button,
   Form,
@@ -21,10 +21,7 @@ import {
   updateAccount,
   type Account,
 } from '../../../services/account';
-import {
-  getCompanySelectList,
-  type Company,
-} from '../../../services/company';
+import { getCompanySelectList, type Company } from '../../../services/company';
 import { getAppSelectList } from '../../../services/dashboard';
 
 const ACCOUNT_TYPE_MAP: Record<number, string> = {
@@ -52,9 +49,9 @@ export function objectToEntries(
     value:
       typeof value === 'string'
         ? value
-        : value == null
-          ? ''
-          : JSON.stringify(value),
+        : value === null || value === undefined
+        ? ''
+        : JSON.stringify(value),
   }));
 
   return entries.length > 0 ? entries : [{ key: '', value: '' }];
@@ -95,7 +92,9 @@ export default function AccountPage() {
   const [editRecord, setEditRecord] = useState<Account | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [companyList, setCompanyList] = useState<Company[]>([]);
-  const [appList, setAppList] = useState<{ app_id: string; app_name: string }[]>([]);
+  const [appList, setAppList] = useState<
+    { app_id: string; app_name: string }[]
+  >([]);
   const accountInfoEntries = Form.useWatch('account_info_entries', form) as
     | AccountInfoEntry[]
     | undefined;
@@ -159,7 +158,7 @@ export default function AccountPage() {
     const accountInfo = entriesToObject(entries);
     if (entries?.some((entry) => entry.key?.trim()) && !accountInfo) {
       message.error('账号信息生成失败');
-        return;
+      return;
     }
 
     setSubmitting(true);
@@ -209,7 +208,8 @@ export default function AccountPage() {
       dataIndex: 'company_id',
       search: false,
       width: 180,
-      render: (_, record) => companyMap.get(record.company_id) ?? record.company_id,
+      render: (_, record) =>
+        companyMap.get(record.company_id) ?? record.company_id,
     },
     {
       title: '关联应用',
@@ -324,7 +324,11 @@ export default function AccountPage() {
             label="关联公司"
             rules={[{ required: true }]}
           >
-            <Select placeholder="请选择公司" showSearch optionFilterProp="children">
+            <Select
+              placeholder="请选择公司"
+              showSearch
+              optionFilterProp="children"
+            >
               {companyList.map((c) => (
                 <Select.Option key={c.id} value={c.id}>
                   {c.company_name}
@@ -332,7 +336,11 @@ export default function AccountPage() {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="app_id" label="关联应用" rules={[{ required: true }]}>
+          <Form.Item
+            name="app_id"
+            label="关联应用"
+            rules={[{ required: true }]}
+          >
             <Select
               mode="multiple"
               placeholder="请选择应用"
@@ -362,14 +370,20 @@ export default function AccountPage() {
                         fieldKey={[field.fieldKey!, 'key']}
                         rules={[{ whitespace: true, message: '请输入 Key' }]}
                       >
-                        <Input placeholder="请输入 Key" style={{ width: 160 }} />
+                        <Input
+                          placeholder="请输入 Key"
+                          style={{ width: 160 }}
+                        />
                       </Form.Item>
                       <Form.Item
                         key={`account-info-value-${field.key}`}
                         name={[field.name, 'value']}
                         fieldKey={[field.fieldKey!, 'value']}
                       >
-                        <Input placeholder="请输入 Value" style={{ width: 220 }} />
+                        <Input
+                          placeholder="请输入 Value"
+                          style={{ width: 220 }}
+                        />
                       </Form.Item>
                       <Button
                         aria-label={`删除账号信息-${field.name}`}

@@ -42,7 +42,7 @@ interface RawAccount {
 }
 
 function parseJsonValue<T>(value: string | T | undefined, fallback: T): T {
-  if (value == null || value === '') {
+  if (value === null || value === undefined || value === '') {
     return fallback;
   }
   if (typeof value !== 'string') {
@@ -96,9 +96,7 @@ export async function createAccount(body: {
     data: {
       ...body,
       app_id: JSON.stringify(body.app_id),
-      account_info: body.account_info
-        ? JSON.stringify(body.account_info)
-        : '',
+      account_info: body.account_info ? JSON.stringify(body.account_info) : '',
     },
   });
 }
@@ -115,9 +113,7 @@ export async function updateAccount(body: {
     data: {
       ...body,
       app_id: body.app_id ? JSON.stringify(body.app_id) : '',
-      account_info: body.account_info
-        ? JSON.stringify(body.account_info)
-        : '',
+      account_info: body.account_info ? JSON.stringify(body.account_info) : '',
     },
   });
 }

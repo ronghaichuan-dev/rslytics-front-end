@@ -3,8 +3,10 @@ import CompareDatePicker, {
 } from '@/components/CompareDatePicker';
 import {
   getCampaignList,
+  getChannelOptions,
   getCountryOptions,
   type CampaignListItem,
+  type RsNetworkItem,
 } from '@/services/analytics';
 import { getAppSelectList } from '@/services/dashboard';
 import { PageContainer } from '@ant-design/pro-components';
@@ -15,26 +17,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 const { Text } = Typography;
 
-const renderCompareInt = (val?: {
-  current: number;
-  compare?: number;
-  change_rate?: number;
-}) => {
-  if (!val) return '-';
-  return val.current ?? 0;
-};
-
-const renderCompareMoney = (val?: {
-  current: number;
-  compare?: number;
-  change_rate?: number;
-}) => {
-  if (!val) return '-';
-  return `$${(val.current ?? 0).toFixed(2)}`;
-};
-
 const renderChangeRate = (rate?: number) => {
-  if (rate == null) return '-';
+  if (rate === null) return '-';
   const color = rate > 0 ? '#52c41a' : rate < 0 ? '#f5222d' : '#666';
   return (
     <span style={{ color }}>
@@ -57,7 +41,8 @@ const AnalyticsCampaign: React.FC = () => {
   const [timezone, setTimezone] = useState('Asia/Shanghai');
   const [countryOptions, setCountryOptions] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-  const [trackerNetwork, setTrackerNetwork] = useState<string>('');
+  const [channelOptions, setChannelOptions] = useState<RsNetworkItem[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [listData, setListData] = useState<CampaignListItem[]>([]);
@@ -71,12 +56,17 @@ const AnalyticsCampaign: React.FC = () => {
     getAppSelectList().then((res) => {
       setAppList(res?.list || []);
     });
+    getChannelOptions().then((res) => {
+      setChannelOptions(res?.list || []);
+    });
   }, []);
 
   useEffect(() => {
-    getCountryOptions({ app_ids: selectedApps.join(',') || undefined }).then((res) => {
-      setCountryOptions(res?.list || []);
-    }).catch(() => {});
+    getCountryOptions({ app_ids: selectedApps.join(',') || undefined })
+      .then((res) => {
+        setCountryOptions(res?.list || []);
+      })
+      .catch(() => {});
   }, [selectedApps]);
 
   const fetchData = useCallback(async () => {
@@ -93,7 +83,7 @@ const AnalyticsCampaign: React.FC = () => {
           selectedCountries.length > 0
             ? selectedCountries.join(',')
             : undefined,
-        tracker_network: trackerNetwork || undefined,
+        tracker_network: selectedChannel || undefined,
         keyword: keyword || undefined,
         sort_field: sortField,
         sort_order: sortOrder,
@@ -112,7 +102,7 @@ const AnalyticsCampaign: React.FC = () => {
     dateRange,
     compareRange,
     selectedCountries,
-    trackerNetwork,
+    selectedChannel,
     keyword,
     sortField,
     sortOrder,
@@ -139,7 +129,7 @@ const AnalyticsCampaign: React.FC = () => {
         dataIndex: [field as string, 'current'],
         sorter: true,
         render: (val: number) => {
-          if (val == null) return '-';
+          if (val === null) return '-';
           if (isMoney) return `$${val.toFixed(2)}`;
           if (isRate) return `${val.toFixed(1)}%`;
           return val;
@@ -152,7 +142,7 @@ const AnalyticsCampaign: React.FC = () => {
           title: `${title}(对比)`,
           dataIndex: [field as string, 'compare'],
           render: (val: number) => {
-            if (val == null) return '-';
+            if (val === null) return '-';
             if (isMoney) return `$${val.toFixed(2)}`;
             if (isRate) return `${val.toFixed(1)}%`;
             return val;
@@ -215,13 +205,17 @@ const AnalyticsCampaign: React.FC = () => {
           maxTagCount={3}
           options={countryOptions.map((c) => ({ label: c, value: c }))}
         />
-        <Input
+        <Select
           size="large"
-          placeholder="渠道筛选"
-          value={trackerNetwork}
-          onChange={(e) => setTrackerNetwork(e.target.value)}
-          allowClear
           style={{ width: 160 }}
+          value={selectedChannel}
+          onChange={setSelectedChannel}
+          placeholder="全部渠道"
+          allowClear
+          options={channelOptions.map((c) => {
+            const [key, label] = Object.entries(c)[0];
+            return { label, value: key };
+          })}
         />
         <Input.Search
           size="large"

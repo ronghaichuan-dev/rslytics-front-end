@@ -14,6 +14,14 @@ export interface Permission {
   children?: Permission[];
 }
 
+export interface PermissionSelectItem {
+  id: number;
+  permissionName: string;
+  level: number;
+  parentId: number;
+  children?: PermissionSelectItem[];
+}
+
 export interface PermissionListItem {
   id: number;
   permissionName: string;
@@ -40,6 +48,12 @@ export async function getPermissionList(params: {
 
 export async function getPermissionTree(): Promise<{ tree: Permission[] }> {
   return request('/admin/permission/tree');
+}
+
+export async function getPermissionSelect(): Promise<{
+  list: PermissionSelectItem[];
+}> {
+  return request('/admin/permission/select');
 }
 
 export async function createPermission(body: {

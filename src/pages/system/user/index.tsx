@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import AccessButton from '../../../components/AccessButton';
+import { getAppSelectList } from '../../../services/dashboard';
 import { getRoleSelectList, type RoleSelectItem } from '../../../services/role';
 import {
   createUser,
@@ -33,10 +34,16 @@ export default function UserPage() {
   const [submitting, setSubmitting] = useState(false);
   const [detailRecord, setDetailRecord] = useState<UserDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [appList, setAppList] = useState<
+    { app_id: string; app_name: string }[]
+  >([]);
 
   useEffect(() => {
     getRoleSelectList()
       .then((res) => setRoleList(res.list ?? []))
+      .catch(() => {});
+    getAppSelectList()
+      .then((res) => setAppList(res.list ?? []))
       .catch(() => {});
   }, []);
 
@@ -48,7 +55,11 @@ export default function UserPage() {
 
   const openEdit = (record: User) => {
     setEditRecord(record);
-    form.setFieldsValue({ username: record.username, role_id: record.roleId });
+    form.setFieldsValue({
+      username: record.username,
+      role_id: record.roleId,
+      app_ids: record.appIds,
+    });
     setDrawerOpen(true);
   };
 
@@ -86,30 +97,47 @@ export default function UserPage() {
       setSubmitting(false);
     }
   };
+  const appMap = new Map(appList.map((app) => [app.app_id, app.app_name]));
 
   const columns: ProColumns<User>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: '用户名', dataIndex: 'username', ellipsis: true },
+    { title: '用户名', dataIndex: 'username', width: 80, ellipsis: true },
     {
       title: '角色名称',
       dataIndex: 'roleId',
       search: false,
-      width: 120,
+      width: 80,
       render: (_, record) =>
         roleList.find((item) => item.id === record.roleId)?.roleName ??
         record.roleId ??
         '-',
     },
     {
+      title: '关联应用',
+      dataIndex: 'appIds',
+      search: false,
+      width: 320,
+      ellipsis: true,
+      render: (_, record) =>
+        Array.isArray(record.appIds)
+          ? record.appIds
+              .map((appId) => {
+                const appName = appMap.get(appId);
+                return appName ? `${appName} (${appId})` : appId;
+              })
+              .join(', ')
+          : '-',
+    },
+    {
       title: intl.formatMessage({ id: 'common.createTime' }),
       dataIndex: 'createdAt',
       search: false,
-      width: 180,
+      width: 100,
     },
     {
       title: intl.formatMessage({ id: 'common.action' }),
       search: false,
-      width: 180,
+      width: 80,
       render: (_, record) => (
         <>
           <AccessButton
@@ -217,6 +245,20 @@ export default function UserPage() {
               {roleList.map((r) => (
                 <Select.Option key={r.id} value={r.id}>
                   {r.roleName}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="app_ids" label="关联应用">
+            <Select
+              mode="multiple"
+              placeholder="请选择应用"
+              showSearch
+              optionFilterProp="children"
+            >
+              {appList.map((a) => (
+                <Select.Option key={a.app_id} value={a.app_id}>
+                  {a.app_id} - {a.app_name}
                 </Select.Option>
               ))}
             </Select>

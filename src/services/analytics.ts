@@ -139,6 +139,21 @@ export async function getCountryOptions(params: {
   return request('/admin/analytics/country/options', { params });
 }
 
+export interface RsNetworkItem {
+  google?: string;
+  tiktok?: string;
+  apple?: string;
+  facebook?: string;
+  twitter?: string;
+  reddit?: string;
+}
+
+export async function getChannelOptions(): Promise<{ list: RsNetworkItem[] }> {
+  return request('/admin/analytics/channel/options', {
+    params: { key: 'RsNetwork' },
+  });
+}
+
 export function exportChannelListUrl(params: Record<string, string>): string {
   const query = new URLSearchParams(params).toString();
   return `/admin/analytics/channel/list/export?${query}`;
@@ -460,5 +475,8 @@ export async function saveCustomTemplate(data: {
 export async function deleteCustomTemplate(data: {
   id: number;
 }): Promise<void> {
-  return request('/admin/analytics/custom/templates', { method: 'DELETE', data });
+  return request('/admin/analytics/custom/templates', {
+    method: 'DELETE',
+    data,
+  });
 }

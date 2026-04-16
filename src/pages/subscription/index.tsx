@@ -1,14 +1,14 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { Button, Descriptions, Drawer, Tag, Space } from 'antd';
+import { Button, Descriptions, Drawer, Space, Tag } from 'antd';
 import { useRef, useState } from 'react';
+import { getAppSelectList } from '../../services/dashboard';
 import {
   getSubscriptionDetail,
   getSubscriptionList,
   type Subscription,
 } from '../../services/subscription';
-import { getAppSelectList } from '../../services/dashboard';
 
 const STATUS_MAP: Record<number, { label: string; color: string }> = {
   1: { label: '已激活', color: 'green' },
@@ -18,10 +18,11 @@ const STATUS_MAP: Record<number, { label: string; color: string }> = {
   5: { label: '已取消', color: 'default' },
 };
 
-const AUTO_RENEW_STATUS_MAP: Record<number, { label: string; color: string }> = {
-  1: { label: '启用', color: 'green' },
-  2: { label: '禁用', color: 'red' },
-};
+const AUTO_RENEW_STATUS_MAP: Record<number, { label: string; color: string }> =
+  {
+    1: { label: '启用', color: 'green' },
+    2: { label: '禁用', color: 'red' },
+  };
 
 const IS_TRIAL_MAP: Record<number, { label: string; color: string }> = {
   1: { label: '是', color: 'blue' },
@@ -32,21 +33,6 @@ const IS_PAID_MAP: Record<number, { label: string; color: string }> = {
   1: { label: '是', color: 'green' },
   2: { label: '否', color: 'default' },
 };
-
-const STATUS_OPTIONS = [
-  { label: '全部', value: 0 },
-  { label: '已激活', value: 1 },
-  { label: '已过期', value: 2 },
-  { label: '计费重试期', value: 3 },
-  { label: '账单宽限期', value: 4 },
-  { label: '已取消', value: 5 },
-];
-
-const AUTO_RENEW_STATUS_OPTIONS = [
-  { label: '全部', value: 0 },
-  { label: '启用', value: 1 },
-  { label: '禁用', value: 2 },
-];
 
 const formatTimestamp = (ts: number): string => {
   if (!ts) return '-';
@@ -91,7 +77,13 @@ export default function SubscriptionPage() {
       },
       fieldProps: { allowClear: true, placeholder: '请选择' },
     },
-    { title: '产品ID', dataIndex: 'productId', ellipsis: true, search: false, width: 120 },
+    {
+      title: '产品ID',
+      dataIndex: 'productId',
+      ellipsis: true,
+      search: false,
+      width: 120,
+    },
     {
       title: '订阅状态',
       dataIndex: 'status',
@@ -107,7 +99,10 @@ export default function SubscriptionPage() {
         5: { text: '已取消', status: 'Default' },
       },
       render: (_, record) => {
-        const status = STATUS_MAP[record.status] || { label: '未知', color: 'default' };
+        const status = STATUS_MAP[record.status] || {
+          label: '未知',
+          color: 'default',
+        };
         return <Tag color={status.color}>{status.label}</Tag>;
       },
     },
@@ -123,7 +118,10 @@ export default function SubscriptionPage() {
         2: { text: '禁用', status: 'Error' },
       },
       render: (_, record) => {
-        const status = AUTO_RENEW_STATUS_MAP[record.autoRenewStatus] || { label: '未知', color: 'default' };
+        const status = AUTO_RENEW_STATUS_MAP[record.autoRenewStatus] || {
+          label: '未知',
+          color: 'default',
+        };
         return <Tag color={status.color}>{status.label}</Tag>;
       },
     },
@@ -133,7 +131,10 @@ export default function SubscriptionPage() {
       search: false,
       width: 60,
       render: (_, record) => {
-        const trial = IS_TRIAL_MAP[record.isTrial] || { label: '未知', color: 'default' };
+        const trial = IS_TRIAL_MAP[record.isTrial] || {
+          label: '未知',
+          color: 'default',
+        };
         return <Tag color={trial.color}>{trial.label}</Tag>;
       },
     },
@@ -143,7 +144,10 @@ export default function SubscriptionPage() {
       search: false,
       width: 70,
       render: (_, record) => {
-        const paid = IS_PAID_MAP[record.isPaid] || { label: '未知', color: 'default' };
+        const paid = IS_PAID_MAP[record.isPaid] || {
+          label: '未知',
+          color: 'default',
+        };
         return <Tag color={paid.color}>{paid.label}</Tag>;
       },
     },
@@ -178,8 +182,14 @@ export default function SubscriptionPage() {
             page: params.current ?? 1,
             size: params.pageSize ?? 20,
             app_id: params.appId,
-            status: params.status && params.status !== 0 ? Number(params.status) : undefined,
-            auto_renew_status: params.autoRenewStatus && params.autoRenewStatus !== 0 ? Number(params.autoRenewStatus) : undefined,
+            status:
+              params.status && params.status !== 0
+                ? Number(params.status)
+                : undefined,
+            auto_renew_status:
+              params.autoRenewStatus && params.autoRenewStatus !== 0
+                ? Number(params.autoRenewStatus)
+                : undefined,
           });
           return { data: res.list, total: res.total, success: true };
         }}
@@ -200,12 +210,18 @@ export default function SubscriptionPage() {
           <Descriptions column={1} bordered size="small">
             <Descriptions.Item label="ID">{detail.id}</Descriptions.Item>
             <Descriptions.Item label="App ID">{detail.appId}</Descriptions.Item>
-            <Descriptions.Item label="产品ID">{detail.productId}</Descriptions.Item>
+            <Descriptions.Item label="产品ID">
+              {detail.productId}
+            </Descriptions.Item>
             <Descriptions.Item label="原始交易ID">
               {detail.orignialTransactionId || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="用户设备ID">{detail.rsid || '-'}</Descriptions.Item>
-            <Descriptions.Item label="环境">{detail.environment || '-'}</Descriptions.Item>
+            <Descriptions.Item label="用户设备ID">
+              {detail.rsid || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="环境">
+              {detail.environment || '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="订阅状态">
               <Space>
                 <Tag color={STATUS_MAP[detail.status]?.color || 'default'}>
@@ -214,7 +230,12 @@ export default function SubscriptionPage() {
               </Space>
             </Descriptions.Item>
             <Descriptions.Item label="自动续费状态">
-              <Tag color={AUTO_RENEW_STATUS_MAP[detail.autoRenewStatus]?.color || 'default'}>
+              <Tag
+                color={
+                  AUTO_RENEW_STATUS_MAP[detail.autoRenewStatus]?.color ||
+                  'default'
+                }
+              >
                 {AUTO_RENEW_STATUS_MAP[detail.autoRenewStatus]?.label || '未知'}
               </Tag>
             </Descriptions.Item>
@@ -228,8 +249,12 @@ export default function SubscriptionPage() {
                 {IS_PAID_MAP[detail.isPaid]?.label || '未知'}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="优惠类型">{detail.offerType || '-'}</Descriptions.Item>
-            <Descriptions.Item label="优惠ID">{detail.offerId || '-'}</Descriptions.Item>
+            <Descriptions.Item label="优惠类型">
+              {detail.offerType || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="优惠ID">
+              {detail.offerId || '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="过期原因">
               {detail.expiresReason || '-'}
             </Descriptions.Item>

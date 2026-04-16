@@ -28,7 +28,11 @@ export default function SettingsPage() {
 
   const openEdit = (record: SystemSetting) => {
     setEditRecord(record);
-    form.setFieldsValue({ key: record.key, value: record.value });
+    form.setFieldsValue({
+      key: record.key,
+      value: record.value,
+      mark: record.mark,
+    });
     setModalOpen(true);
   };
 
@@ -72,6 +76,7 @@ export default function SettingsPage() {
         return str.length > 50 ? str.slice(0, 50) + '...' : str;
       },
     },
+    { title: '备注', dataIndex: 'mark', ellipsis: true },
     {
       title: intl.formatMessage({ id: 'common.createTime' }),
       dataIndex: 'createdAt',
@@ -153,6 +158,9 @@ export default function SettingsPage() {
           </Form.Item>
           <Form.Item name="value" label="Value" rules={[{ required: true }]}>
             <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item name="mark" label="备注">
+            <Input />
           </Form.Item>
         </Form>
       </Modal>

@@ -2,17 +2,18 @@ import CompareDatePicker, {
   type DateRange,
 } from '@/components/CompareDatePicker';
 import {
+  getChannelOptions,
+  getGeoList,
   getGeoMap,
   getGeoTop,
-  getGeoList,
-  getCountryOptions,
+  type GeoListItem,
   type GeoMapItem,
   type GeoTopItem,
-  type GeoListItem,
+  type RsNetworkItem,
 } from '@/services/analytics';
 import { getAppSelectList } from '@/services/dashboard';
 import { PageContainer } from '@ant-design/pro-components';
-import { Col, Input, Row, Select, Space, Spin, Table, Typography } from 'antd';
+import { Col, Row, Select, Space, Spin, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import ReactECharts from 'echarts-for-react';
@@ -26,7 +27,9 @@ const metricOptions = [
 ];
 
 const AnalyticsGeo: React.FC = () => {
-  const [appList, setAppList] = useState<{ app_id: string; app_name: string }[]>([]);
+  const [appList, setAppList] = useState<
+    { app_id: string; app_name: string }[]
+  >([]);
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>({
     startDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
@@ -34,7 +37,8 @@ const AnalyticsGeo: React.FC = () => {
   });
   const [compareRange, setCompareRange] = useState<DateRange | undefined>();
   const [timezone, setTimezone] = useState('Asia/Shanghai');
-  const [trackerNetwork, setTrackerNetwork] = useState('');
+  const [channelOptions, setChannelOptions] = useState<RsNetworkItem[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>('');
   const [metric, setMetric] = useState('install_count');
   const [loading, setLoading] = useState(false);
   const [mapData, setMapData] = useState<GeoMapItem[]>([]);
@@ -48,6 +52,9 @@ const AnalyticsGeo: React.FC = () => {
     getAppSelectList().then((res) => {
       setAppList(res?.list || []);
     });
+    getChannelOptions().then((res) => {
+      setChannelOptions(res?.list || []);
+    });
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -58,7 +65,7 @@ const AnalyticsGeo: React.FC = () => {
           app_ids: selectedApps.join(',') || undefined,
           start_date: dateRange.startDate,
           end_date: dateRange.endDate,
-          tracker_network: trackerNetwork || undefined,
+          tracker_network: selectedChannel || undefined,
           metric,
           timezone,
         }),
@@ -68,7 +75,7 @@ const AnalyticsGeo: React.FC = () => {
           end_date: dateRange.endDate,
           compare_start_date: compareRange?.startDate,
           compare_end_date: compareRange?.endDate,
-          tracker_network: trackerNetwork || undefined,
+          tracker_network: selectedChannel || undefined,
           metric,
           limit: 5,
           timezone,
@@ -79,7 +86,7 @@ const AnalyticsGeo: React.FC = () => {
           end_date: dateRange.endDate,
           compare_start_date: compareRange?.startDate,
           compare_end_date: compareRange?.endDate,
-          tracker_network: trackerNetwork || undefined,
+          tracker_network: selectedChannel || undefined,
           sort_field: sortField,
           sort_order: sortOrder,
           timezone,
@@ -94,7 +101,16 @@ const AnalyticsGeo: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedApps, dateRange, compareRange, trackerNetwork, metric, sortField, sortOrder, timezone]);
+  }, [
+    selectedApps,
+    dateRange,
+    compareRange,
+    selectedChannel,
+    metric,
+    sortField,
+    sortOrder,
+    timezone,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -109,7 +125,9 @@ const AnalyticsGeo: React.FC = () => {
       formatter: (params: any) => {
         const name = params.name || '';
         const val = params.value ?? '-';
-        return `${name}: ${metric === 'net_revenue' ? `$${Number(val).toFixed(2)}` : val}`;
+        return `${name}: ${
+          metric === 'net_revenue' ? `$${Number(val).toFixed(2)}` : val
+        }`;
       },
     },
     visualMap: {
@@ -161,7 +179,7 @@ const AnalyticsGeo: React.FC = () => {
         dataIndex: [field, 'current'],
         sorter: true,
         render: (val: number) => {
-          if (val == null) return '-';
+          if (val === null) return '-';
           if (isMoney) return `$${val.toFixed(2)}`;
           if (isRate) return `${val.toFixed(1)}%`;
           return val;
@@ -174,7 +192,7 @@ const AnalyticsGeo: React.FC = () => {
           title: `${title}(对比)`,
           dataIndex: [field, 'compare'],
           render: (val: number) => {
-            if (val == null) return '-';
+            if (val === null) return '-';
             if (isMoney) return `$${val.toFixed(2)}`;
             if (isRate) return `${val.toFixed(1)}%`;
             return val;
@@ -184,7 +202,7 @@ const AnalyticsGeo: React.FC = () => {
           title: '变化',
           dataIndex: [field, 'change_rate'],
           render: (val: number) => {
-            if (val == null) return '-';
+            if (val === null) return '-';
             const color = val > 0 ? '#52c41a' : val < 0 ? '#f5222d' : '#666';
             return (
               <span style={{ color }}>
@@ -232,13 +250,17 @@ const AnalyticsGeo: React.FC = () => {
           timezone={timezone}
           onTimezoneChange={setTimezone}
         />
-        <Input
+        <Select
           size="large"
-          placeholder="渠道筛选"
-          value={trackerNetwork}
-          onChange={(e: any) => setTrackerNetwork(e.target.value)}
-          allowClear
           style={{ width: 160 }}
+          value={selectedChannel}
+          onChange={setSelectedChannel}
+          placeholder="全部渠道"
+          allowClear
+          options={channelOptions.map((c) => {
+            const [key, label] = Object.entries(c)[0];
+            return { label, value: key };
+          })}
         />
         <Select
           size="large"
@@ -277,7 +299,9 @@ const AnalyticsGeo: React.FC = () => {
             pagination={false}
             onChange={(_p, _f, sorter: any) => {
               if (sorter?.field) {
-                const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
+                const field = Array.isArray(sorter.field)
+                  ? sorter.field[0]
+                  : sorter.field;
                 setSortField(field);
                 setSortOrder(sorter.order === 'ascend' ? 'asc' : 'desc');
               }
@@ -289,37 +313,53 @@ const AnalyticsGeo: React.FC = () => {
                     <Table.Summary.Cell index={0}>
                       <strong>{totalRow.country}</strong>
                     </Table.Summary.Cell>
-                    {['install_count', 'trial_count', 'subscribe_count', 'net_revenue', 'arpu', 'refund_rate'].map((col, idx) => {
+                    {[
+                      'install_count',
+                      'trial_count',
+                      'subscribe_count',
+                      'net_revenue',
+                      'arpu',
+                      'refund_rate',
+                    ].map((col, idx) => {
                       const data = totalRow[col as keyof GeoListItem] as any;
                       const isMoney = col === 'net_revenue' || col === 'arpu';
                       const isRate = col === 'refund_rate';
                       const cells = [];
                       const format = (v: number) => {
-                        if (v == null) return '-';
+                        if (v === null) return '-';
                         if (isMoney) return `$${v.toFixed(2)}`;
                         if (isRate) return `${v.toFixed(1)}%`;
                         return v;
                       };
                       cells.push(
-                        <Table.Summary.Cell key={`${col}-cur`} index={idx * (hasCompare ? 3 : 1) + 1}>
+                        <Table.Summary.Cell
+                          key={`${col}-cur`}
+                          index={idx * (hasCompare ? 3 : 1) + 1}
+                        >
                           <strong>{format(data?.current)}</strong>
                         </Table.Summary.Cell>,
                       );
                       if (hasCompare) {
                         cells.push(
-                          <Table.Summary.Cell key={`${col}-cmp`} index={idx * 3 + 2}>
+                          <Table.Summary.Cell
+                            key={`${col}-cmp`}
+                            index={idx * 3 + 2}
+                          >
                             {format(data?.compare)}
                           </Table.Summary.Cell>,
-                          <Table.Summary.Cell key={`${col}-chg`} index={idx * 3 + 3}>
-                            {data?.change_rate != null ? (
+                          <Table.Summary.Cell
+                            key={`${col}-chg`}
+                            index={idx * 3 + 3}
+                          >
+                            {data?.change_rate !== null ? (
                               <span
                                 style={{
                                   color:
                                     data.change_rate > 0
                                       ? '#52c41a'
                                       : data.change_rate < 0
-                                        ? '#f5222d'
-                                        : '#666',
+                                      ? '#f5222d'
+                                      : '#666',
                                 }}
                               >
                                 {data.change_rate > 0 ? '+' : ''}
